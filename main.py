@@ -1,16 +1,13 @@
 from collections import defaultdict
-from heapq import heappush, heappop 
+from heapq import heappush, heappop
 from math import sqrt
+
 
 def prim(graph):
     """
-    ### TODO:
-    Update this method to work when the graph has multiple connected components.
-    Rather than returning a single tree, return a list of trees,
-    one per component, containing the MST for each component.
-
-    Each tree is a set of (weight, node1, node2) tuples.    
+    Returns a list of MSTs (as sets of (weight, node, parent)), one per connected component.
     """
+
     def prim_helper(visited, frontier, tree):
         if len(frontier) == 0:
             return tree
@@ -24,31 +21,37 @@ def prim(graph):
                 tree.add((weight, node, parent))
                 visited.add(node)
                 for neighbor, w in graph[node]:
-                    heappush(frontier, (w, neighbor, node))    
+                    heappush(frontier, (w, neighbor, node))
                     # compare with dijkstra:
-                    # heappush(frontier, (distance + weight, neighbor))                
+                    # heappush(frontier, (distance + weight, neighbor))
 
                 return prim_helper(visited, frontier, tree)
-        
-    # pick first node as source arbitrarily
-    source = list(graph.keys())[0]
-    frontier = []
-    heappush(frontier, (0, source, source))
-    visited = set()  # store the visited nodes (don't need distance anymore)
-    tree = set()
-    prim_helper(visited, frontier, tree)
-    return tree
 
-def test_prim():    
+    forests = []
+    cities = set(graph.keys())
+    explored = set()
+    forests = []
+    while explored < cities:
+        frontier = []
+        tree = set()
+        source = next(iter(cities - explored))
+        heappush(frontier, (0, source, source))
+        prim_helper(explored, frontier, tree)
+        forests.append(tree)
+
+    return forests
+
+
+def test_prim():
     graph = {
-            's': {('a', 4), ('b', 8)},
-            'a': {('s', 4), ('b', 2), ('c', 5)},
-            'b': {('s', 8), ('a', 2), ('c', 3)}, 
-            'c': {('a', 5), ('b', 3), ('d', 3)},
-            'd': {('c', 3)},
-            'e': {('f', 10)}, # e and f are in a separate component.
-            'f': {('e', 10)}
-        }
+        's': {('a', 4), ('b', 8)},
+        'a': {('s', 4), ('b', 2), ('c', 5)},
+        'b': {('s', 8), ('a', 2), ('c', 3)},
+        'c': {('a', 5), ('b', 3), ('d', 3)},
+        'd': {('c', 3)},
+        'e': {('f', 10)},  # e and f are in a separate component.
+        'f': {('e', 10)}
+    }
 
     trees = prim(graph)
     assert len(trees) == 2
@@ -67,7 +70,6 @@ def test_prim():
     ###
 
 
-
 def mst_from_points(points):
     """
     Return the minimum spanning tree for a list of points, using euclidean distance 
@@ -81,24 +83,43 @@ def mst_from_points(points):
       a list of edges of the form (weight, node1, node2) indicating the minimum spanning
       tree connecting the cities in the input.
     """
-    ###TODO
-    pass
+    graph = {}
+    for point in points:
+        name = point[0]
+        graph[name] = []
+    n = len(points)
+    for i in range(n):
+        name1 = points[i][0]
+        for j in range(i + 1, n):
+            name2 = points[j][0]
+            w = euclidean_distance(points[i], points[j])
+            graph[name1].append((name2, w))
+            graph[name2].append((name1, w)) 
+    edges = list(prim(graph)[0])
+    def sort_key(edge):
+        return (edge[0], edge[1], edge[2])
+    edges.sort(key=sort_key)
+
+    return edges
+
 
 def euclidean_distance(p1, p2):
     return sqrt((p1[1] - p2[1])**2 + (p1[2] - p2[2])**2)
 
+
 def test_euclidean_distance():
     assert round(euclidean_distance(('a', 5, 10), ('b', 7, 12)), 2) == 2.83
 
+
 def test_mst_from_points():
-    points = [('a', 5, 10), #(city_name, x-coord, y-coord)
-              ('b', 7, 12),
-              ('c', 2, 3),
-              ('d', 12, 3),
-              ('e', 4, 6),
-              ('f', 6, 7)]
+    points = [
+        ('a', 5, 10),  #(city_name, x-coord, y-coord)
+        ('b', 7, 12),
+        ('c', 2, 3),
+        ('d', 12, 3),
+        ('e', 4, 6),
+        ('f', 6, 7)
+    ]
     tree = mst_from_points(points)
     # check that the weight of the MST is correct.
     assert round(sum(e[0] for e in tree), 2) == 19.04
-
-
