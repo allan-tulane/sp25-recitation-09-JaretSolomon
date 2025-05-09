@@ -1,33 +1,16 @@
-# CMPS 2200  Recitation 09
+Jaret Solomon
 
-In this lab we'll investigate minimum spanning tree algorithms.
+2) 
+If the graph has K nodes and E edges, and is made up of k connected components, then the worst-case work of the modified Prim's algorithm is O(E + K log K).
 
-
-1. In class, we gave an implementation of Prim's algorithm. It assumes that the input graph $G$ is connected. What if it's not? Modify `prim` to return a list of trees, one per connected component. Test with `test_prim`.
-
-.  
-.  
-.  
+Each edge is considered at most once when it's added to the priority queue, contributing O(E) work.
+Each node is processed once, and priority queue operations (insertions and updates) cost log K, giving O(K log K) total work.
+Since we're running Prim's separately on each component, the cost is still bounded by the total number of edges and nodes.
 
 
-2. What is the worst-case work of your algorithm, assuming $G$ has $k$ connected components?
+4) 
+The overall work is O(n² log n), where n is the number of cities.
 
-**put in answers.md**
-
-.  
-.  
-.  
-
-3. Consider the problem of finding the MST to connect a list of cities by roads. If we have as input the (x,y) coordinates of each city, we can first build a fully-connected, undirected, weighted graph, where each pair of cities is joined by an edge with weight equal to the Euclidean distance between their coordinates. Complete `mst_from_points` to find the MST from a list of points, and test with `test_mst_from_points`. 
-
-.  
-.  
-.  
-
-4. What is the work of your full algorithm in the previous answer?
-
-**put in answers.md**
-
-.  
-.  
-.  
+We start by constructing a complete graph where each of the n cities is connected to every other city. This results in O(n²) edges.
+For each of these n² edges, we compute the Euclidean distance, and then apply Prim's algorithm.
+Since Prim’s uses a priority queue and touches each node with log n operations, the total work is O(n² log n).
